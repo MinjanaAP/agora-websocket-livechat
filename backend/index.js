@@ -16,27 +16,44 @@ const WebSocket = require('ws');
 
 //? GENERATE an authentication token
 app.post('/generate-token', (req, res)=>{
-    const { channelName, uid, role} = req.body;
-
-    if(!channelName){
-        return res.status(400).json({
-            error: "Channel name is required."
-        })
+    try {
+        const { channelName, uid, role} = req.body;
+    
+        if(!channelName){
+            return res.status(400).json({
+                status : false,
+                message: "Channel name is required."
+            })
+        }
+    
+        const expirationTimeInSeconds = 3600; 
+        const currentTime = Math.floor(Date.now() / 1000);
+        const privilegeExpiredTs = currentTime + expirationTimeInSeconds;
+    
+        const rtcRole = role === 'publisher' ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+        const userId = uid ?? 0;
+    
+        const token = RtcTokenBuilder.buildTokenWithUid(
+            APP_ID,
+            APP_CERTIFICATE,
+            channelName,
+            userId,
+            rtcRole,
+            privilegeExpiredTs
+        );
+    
+        res.status(200).json({
+            status : true,
+            token : token,
+            message : "Token generated successfully."
+        });
+    } catch (error) {
+        console.error("Error generating token:", error);
+        res.status(500).json({
+            status: false,
+            message: "Failed to generate token"
+        });
     }
-
-    const expirationTimeInSeconds = 3600; 
-    const currentTime = Math.floor(Date.now() / 1000);
-    const privilegeExpiredTs = currentTime + expirationTimeInSeconds;
-
-    const token = RtcTokenBuilder.buildTokenWithUid(
-        APP_ID,
-        APP_CERTIFICATE,
-        channelName,
-        uid || 0,
-        role === 'publisher' ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER,
-        privilegeExpiredTs
-    );
-    res.json({ token });
 })
 
 
