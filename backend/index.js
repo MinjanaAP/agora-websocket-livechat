@@ -1,6 +1,6 @@
 require('dotenv').config();
-import express from 'express';
-import cors from 'cors';
+const express = require('express');
+const cors = require('cors');
 const { RtcTokenBuilder, RtcRole } = require('agora-access-token');
 
 const app = express();
@@ -8,8 +8,8 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = 8000;
-const APP_ID = process.env.APP_ID;
-const APP_CERTIFICATE = process.env.APP_CERTIFICATE;
+const APP_ID = process.env.APP_ID || null;
+const APP_CERTIFICATE = process.env.APP_CERTIFICATE || null;
 
 const WebSocket = require('ws');
 
@@ -58,7 +58,14 @@ app.post('/generate-token', (req, res)=>{
 
 
 //?Websocket API s
-const wss = new WebSocket.Server({port:8080});
+// const wss = new WebSocket.Server({port:8080});
+
+const server = require('http').createServer(app);
+const wss = new WebSocket.Server({ server });
+
+server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
 
 wss.on('connection', (ws)=>{
     console.log('Client connected.');

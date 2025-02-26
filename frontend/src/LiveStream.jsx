@@ -3,10 +3,10 @@ import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from 'axios';
 import { fetchToken } from './api/axios';
 
-const APP_ID = "your_agora_app_id";
+const APP_ID = "824d82b21f9e4d778c8920670cc6827d";
 
 const LiveStream =()=>{
-    const [channelName, SetChannelName]= useState("");
+    const [channelName, setChannelName]= useState("");
     const [joined, setJoined] = useState(false);
     const [token, setToken] = useState("");
     const client = useRef(AgoraRTC.createClient({ mode: "live", codec: "vp8" }));
@@ -19,8 +19,9 @@ const LiveStream =()=>{
         }
         try {
             const response = await fetchToken(body);
+            // alert(JSON.stringify(response,null,2));
             if(response && response.status){
-                setToken(response.data.token)
+                return response.token;
             }else{
                 console.error("Error in response data");
             }
@@ -30,10 +31,17 @@ const LiveStream =()=>{
     }
 
     const joinChannel  =async ()=>{
-        await FetchToken();
+        const newToken = await FetchToken();
+
+        if(!newToken){
+            console.error("Token retrieval failed.");
+            return;
+        }
+
+        setToken(newToken);
         client.current.setClientRole("host");
 
-        await client.current.join(APP_ID, channelName, token, null);
+        await client.current.join(APP_ID, channelName, newToken, null);
 
         const localTrack = await AgoraRTC.createMicrophoneAndCameraTracks();
         localTracks.current = localTrack;
@@ -56,4 +64,6 @@ const LiveStream =()=>{
             <div id="local-player" style={{ width: "400px", height: "300px", background: "#000" }}></div>
         </div>
     );
-}
+};
+
+export default LiveStream;
