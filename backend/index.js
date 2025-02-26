@@ -56,6 +56,16 @@ app.post('/generate-token', (req, res)=>{
     }
 })
 
+app.post('/create-broadcast',(req, res)=>{
+    const { channelName } = req.body;
+
+    if (!channelName) {
+        return res.status(400).json({ error: 'Channel name is required' });
+    }
+
+    res.json({ message: 'Broadcast created', channelName });
+})
+
 
 //?Websocket API s
 // const wss = new WebSocket.Server({port:8080});
